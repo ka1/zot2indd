@@ -4,6 +4,9 @@ Zotero to InDesign export library by Kai
 ----------------------------------------
 Import your Zotero Citations to InDesign and use Latex like syntax (ie. "\cite{author1998}" ) to create a linked reference list.
 
+This is meant to give some inspiration and starting point to Indesign + Zotero users. It's nowhere near bug free. Comments are welcome, however I cannot promise the implementation of feature requests or modifications.
+Also, the reference style is customized to my personal demands, but should be customizable given some knowledge of Indesigns javascript.
+
 Use at your own risk ;)
 
 ________________________________________
