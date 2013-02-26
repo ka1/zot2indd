@@ -1,13 +1,11 @@
 zot2indd
 ========
-
-----------------------------------------
 Zotero to InDesign export library by Kai
-
-Import your Zotero Citations to InDesign and use Latex like syntax (ie. "\cite{author1998}" ) to create a linked reference list.
-
-Use at your own risk ;)
 ----------------------------------------
+Import your Zotero Citations to InDesign and use Latex like syntax (ie. "\cite{author1998}" ) to create a linked reference list.
+Use at your own risk ;)
+
+________________________________________
 
 The JS files ("BibTexCiteKeyOnly.js" and "MODS modified by Kai.js") need to be copied into the translators directory of zotero. This can be in two different locations, depending on the version (stand alone or firefox browser plugin) of zotero:
 - ~/Library/Application Support/Firefox/Profiles/[random]/zotero/translators
