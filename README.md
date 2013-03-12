@@ -51,4 +51,4 @@ Usage:
 - You can run the script over and over again. It will always replace the reference list by a updated reference list. It will parse new **\cite{...}** citations and also rewrite all parsed references (updating the author and year if you have changed either the citekey or the content of the Zotero XML file).
 - See the character and paragraph styles that the script created. You can edit them to change the appearance of the reference list and of the references. The styles will not be overwritten by the script.
 - The script will remember your settings (and your last XML file). The setting are saved in the Indesign document structure in the attributes of an element called zoteroImportSettings.
-- Options: Use **\cite{...}** to have a full author and year reference. Use **\citer{...}** to not enclose the reference in brackets. Use **\citea{...}** to cite author only and **\citey{...}** to cite year only.
+- Options: Use **\cite{...}** to have a full author and year reference. Use **\citer{...}** to not enclose the reference in brackets. Use **\citea{...}** to cite author only and **\citey{...}** to cite year only. Use **\citet{...}** to cite the title.
