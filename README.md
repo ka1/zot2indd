@@ -52,3 +52,13 @@ Usage:
 - See the character and paragraph styles that the script created. You can edit them to change the appearance of the reference list and of the references. The styles will not be overwritten by the script.
 - The script will remember your settings (and your last XML file). The setting are saved in the Indesign document structure in the attributes of an element called zoteroImportSettings.
 - Options: Use **\cite{...}** to have a full author and year reference. Use **\citer{...}** to not enclose the reference in brackets. Use **\citea{...}** to cite author only and **\citey{...}** to cite year only. Use **\citet{...}** to cite the title.
+
+Sample:
+======
+- To try it out, install at least the Indesign Script (JSX) as explained above.
+- Then create a new document in Adobe InDesign. Create a new textframe, and cite Einstein, typing "**\cite{einstein1905}**".
+- Add some more text after or before the citation (the citation must not be the only content of the text frame).
+- Run the script.
+- Confirm the first dialog box ("Zotero to Indesign Interface settings") with "OK"
+- In the next dialog box, select the sample.xml contained in this package. Confirm with "Open"
+- A new page with the references should be created, as well as all the paragraph, object and character styles that are needed.
