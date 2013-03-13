@@ -56,7 +56,7 @@ Usage:
 Sample:
 ======
 - To try it out, install at least the Indesign Script (JSX) as explained above.
-- Then create a new document in Adobe InDesign. Create a new textframe, and cite Einstein, typing "**\cite{einstein1905}**".
+- Then create a new document in Adobe InDesign. Create a new textframe, and cite Einstein, typing **\cite{einstein1905}**.
 - Add some more text after or before the citation (the citation must not be the only content of the text frame).
 - Run the script.
 - Confirm the first dialog box ("Zotero to Indesign Interface settings") with "OK"
