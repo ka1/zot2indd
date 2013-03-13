@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modsCollection>
+	<mods>
+		<citeKey>einstein1905</citeKey>
+		<titleInfo>
+			<title>Eine neue Bestimmung der Moleküldimensionen</title>
+		</titleInfo>
+		<typeOfResource>text</typeOfResource>
+		<genre authority="local">journalArticle</genre>
+		<name type="personal">
+			<namePart type="family">Einstein</namePart>
+			<namePart type="given">A.</namePart>
+			<role>
+				<roleTerm type="code" authority="marcrelator">aut</roleTerm>
+			</role>
+		</name>
+		<identifier type="doi">10.1002/andp.19063240204</identifier>
+		<relatedItem type="host">
+			<genre authority="marcgt">journal</genre>
+			<part>
+				<detail type="volume">
+					<number>324</number>
+				</detail>
+				<detail type="issue">
+					<number>2</number>
+				</detail>
+				<extent unit="pages">
+					<start>289</start>
+					<end>306</end>
+				</extent>
+			</part>
+			<originInfo>
+				<dateIssued>1905</dateIssued>
+				<issuance>continuing</issuance>
+			</originInfo>
+			<identifier type="issn">1521-3889</identifier>
+			<titleInfo>
+				<title>Annalen der Physik</title>
+			</titleInfo>
+		</relatedItem>
+	</mods>
+</modsCollection>
