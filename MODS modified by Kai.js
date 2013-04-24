@@ -454,7 +454,7 @@ function doExport() {
 
 
 function doExport() {
-	Zotero.setCharacterSet("utf-8");
+	Zotero.setCharacterSet("utf-16");
 	var parser = new DOMParser();
 	var doc = parser.parseFromString('<modsCollection />', 'application/xml');
 	
@@ -763,7 +763,7 @@ function doExport() {
 		doc.documentElement.appendChild(mods);
 	}
 	
-	Zotero.write('<?xml version="1.0"?>'+"\n");
+	Zotero.write('<?xml version="1.0" encoding="UTF-16"?>'+"\n");
 	var serializer = new XMLSerializer();
 	Zotero.write(serializer.serializeToString(doc));
 }
