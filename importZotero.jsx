@@ -502,11 +502,21 @@ function myImportXMLFileUsingDefaults(){
 
 		stime.addtime("loop " + r + " contents and style");
 
-		//add hyperlinks
+		//add hyperlinks to the reference in the text. for this, select the text first
 		var myReferenceTagText = currentRefTagXMLElement.characters.itemByRange(currentRefTagXMLElement.insertionPoints.firstItem(),currentRefTagXMLElement.insertionPoints.lastItem());
-		//if the following line causes an error, maybe there are old textsources in the document. remove them by removing the comment tags around allHyperlinkSources[i].name.match(/ZotRefSrc[0-9]+/i)
-		var myReferenceSource = myDocument.hyperlinkTextSources.add(myReferenceTagText,{name:"ZotRefSrc" + r, label: "zotrefLinksrc"});
-		myDocument.hyperlinks.add(myReferenceSource,currentCitekeyItem.hyperlinkTextDestination,{name: r + "_" + currentKey,label:"zotrefHyperlink"});
+		
+		//check if the selection or anything in the paragraph is already a hyperlink
+		var foundHyperlinks = myReferenceTagText.findHyperlinks();
+		if (foundHyperlinks[0].length < 1){
+			//if the following line causes an error, maybe there are old textsources in the document. remove them by removing the comment tags around allHyperlinkSources[i].name.match(/ZotRefSrc[0-9]+/i)
+			//if the error is something about an existing hyperlink, check this if condition, because this _should_ find already existing hyperlinks and skip the creation. however, the found object is a bit strange and is only distinguishable by "length"
+			var myReferenceSource = myDocument.hyperlinkTextSources.add(myReferenceTagText,{name:"ZotRefSrc" + r, label: "zotrefLinksrc"});
+			myDocument.hyperlinks.add(myReferenceSource,currentCitekeyItem.hyperlinkTextDestination,{name: r + "_" + currentKey,label:"zotrefHyperlink"});
+		}
+		else {
+			//activate the following line if you want to be notified about skipped links
+			notice_general.push("skipping hyperlink creation for reference " + myReferenceTagText.contents);
+		}
 		
 		stime.addtime("loop " + r + " hyperlinks");
 
