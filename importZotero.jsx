@@ -158,7 +158,7 @@ function main(){
 
 	//show warnings (if activated)
 	if (notice_general.length > 0 && showWarnings){
-		alert("There where following warnings:\n" + notice_general.join("\n"));
+		alert("There where following warnings:\n" + notice_general.join("\n\n"));
 	}
 
 	//show warnings (if activated)
@@ -515,7 +515,7 @@ function myImportXMLFileUsingDefaults(){
 		}
 		else {
 			//activate the following line if you want to be notified about skipped links
-			notice_general.push("skipping hyperlink creation for reference " + myReferenceTagText.contents);
+			notice_general.push("Already a link: skipping Hyperlink creation for reference " + myReferenceTagText.contents + " on page " + currentRefTagXMLElement.texts[0].parentTextFrames[0].parentPage.name);
 		}
 		
 		stime.addtime("loop " + r + " hyperlinks");
