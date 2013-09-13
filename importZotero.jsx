@@ -547,13 +547,40 @@ function myImportXMLFileUsingDefaults(){
 	//now, add the page usages to the bibliography, that has already been created
 	for(var i = myCitekeyInfo.citeKeyArray.length - 1; i >= 0; i--){
 		var currentCitekeyItem = myCitekeyInfo.citeKeyArray[i];
-		var currentText = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
-		currentText.contents += " ... ck = " + currentCitekeyItem.citeKey;
-		currentText.contents += " !";
+//		var currentText = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
+//		var currentInsertionPoint = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
+//		currentText.contents += " ... ck = " + currentCitekeyItem.citeKey;
+//		currentText.contents += " !";
 		
 		for(var u = 0; u < currentCitekeyItem.usages.length; u++){
+
+			//the usage (linkdestination) of that loop
 			var currentUsage = currentCitekeyItem.usages[u];
-			currentText.contents += " PAGE " + currentUsage.destinationText.parentTextFrames[0].parentPage.name;
+			
+			//safe insertionPoint start
+			//var crossTextStartIns = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
+			
+			//currentRefTagXMLElement.characters.itemByRange(currentRefTagXMLElement.insertionPoints.firstItem(),currentRefTagXMLElement.insertionPoints.lastItem());
+			
+			//currentText.contents += " PAGE " + currentUsage.destinationText.parentTextFrames[0].parentPage.name;
+
+			var crossTextEndIns = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
+
+
+//			var insertionPointNow = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
+
+			//select newest text addition
+			//var myCrossReferenceTextSelection = myRefTextFrame.parentStory.characters.itemByRange(crossTextStartIns,crossTextEndIns);
+			var crossRefstyle = myDocument.crossReferenceFormats.itemByName('Seitenzahl'); //TODO: i8n
+			
+//~ 			for(var t = 0; t < myDocument.crossReferenceSources.length; t++){
+//~ 				var tcr = myDocument.crossReferenceSources[t];
+//~ 				$.writeln("SOURCE: " + tcr.name);
+//~ 			}
+			
+			var myCrossReferenceSource = myDocument.crossReferenceSources.add(crossTextEndIns,crossRefstyle,{name: "ZotRefBacklink_" + currentCitekeyItem.citeKey + "-" + u,label: "zotRefBacklink"});
+			myDocument.hyperlinks.add(myCrossReferenceSource,currentUsage,{name: i + "_" + " _" + u + "_" + currentKey,label:"zotrefHyperlink"});
+			
 			//TODO: continue HERE! add a real link to the textanchor (currentUsage is an anchor)
 		}
 	}
