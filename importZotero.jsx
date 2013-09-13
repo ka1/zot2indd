@@ -538,50 +538,46 @@ function myImportXMLFileUsingDefaults(){
 
 		stime.addtime("loop " + r + " hover effects");
 		
-		//now add the page number of this reference to the bibliography
-		$.writeln(currentCitekeyItem.bibParagraphInsertionPoint);
-		var thisHyperlinkDestination = myDocument.hyperlinkTextDestinations.add(currentRefTagXMLElement.insertionPoints.firstItem(),{name:"back-" + currentKey + "-to-" + r, label: 'zotrefBackLinkDest'}); //create a linkdestination to the reference in the text. this will be linked in the bibliography (with the small page numbers)
-		currentCitekeyItem.usages.push(thisHyperlinkDestination);
+		//create an anchor (hyperlink destination) to link back to this citation
+		//only create the anchor if it is a 'real' reference
+		switch(currentCitetype){
+			case 'default':
+			case 'noBrackets':
+				var thisHyperlinkDestination = myDocument.hyperlinkTextDestinations.add(currentRefTagXMLElement.insertionPoints.firstItem(),{name:"back-" + currentKey + "-to-" + r, label: 'zotrefBackLinkDest'}); //create a linkdestination to the reference in the text. this will be linked in the bibliography (with the small page numbers)
+				currentCitekeyItem.usages.push(thisHyperlinkDestination);
+				break;
+		}
 	}
+
+	myProgressPanel.myText.text = "Adding backlinks";
 
 	//now, add the page usages to the bibliography, that has already been created
 	for(var i = myCitekeyInfo.citeKeyArray.length - 1; i >= 0; i--){
 		var currentCitekeyItem = myCitekeyInfo.citeKeyArray[i];
-//		var currentText = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
-//		var currentInsertionPoint = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
-//		currentText.contents += " ... ck = " + currentCitekeyItem.citeKey;
-//		currentText.contents += " !";
-		
-		for(var u = 0; u < currentCitekeyItem.usages.length; u++){
 
+		for(var u = 0; u < currentCitekeyItem.usages.length; u++){
+			//add a space
+			myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2].contents += (u > 0 ? ", " : " ");
+			
 			//the usage (linkdestination) of that loop
 			var currentUsage = currentCitekeyItem.usages[u];
-			
-			//safe insertionPoint start
-			//var crossTextStartIns = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
-			
-			//currentRefTagXMLElement.characters.itemByRange(currentRefTagXMLElement.insertionPoints.firstItem(),currentRefTagXMLElement.insertionPoints.lastItem());
-			
-			//currentText.contents += " PAGE " + currentUsage.destinationText.parentTextFrames[0].parentPage.name;
-
+			//the end of the current paragraph
 			var crossTextEndIns = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
 
-
-//			var insertionPointNow = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
-
-			//select newest text addition
-			//var myCrossReferenceTextSelection = myRefTextFrame.parentStory.characters.itemByRange(crossTextStartIns,crossTextEndIns);
-			var crossRefstyle = myDocument.crossReferenceFormats.itemByName('Seitenzahl'); //TODO: i8n
+			//which reference format to use
+			var crossRefFormatBuildingBlocks =
+				[	//this array should be containing all parameters (3) needed for buildingBlocks.add
+					[BuildingBlockTypes.CUSTOM_STRING_BUILDING_BLOCK,null,"["],
+					[BuildingBlockTypes.PAGE_NUMBER_BUILDING_BLOCK,null,null],
+					[BuildingBlockTypes.CUSTOM_STRING_BUILDING_BLOCK,null,"]"]					
+				];
+			var crossRefFormat = returnCrossrefFormatOrCreatenew('Backlink14',null,crossRefFormatBuildingBlocks); //myDocument.crossReferenceFormats.itemByName('Backlink'); //TODO: i8n
 			
-//~ 			for(var t = 0; t < myDocument.crossReferenceSources.length; t++){
-//~ 				var tcr = myDocument.crossReferenceSources[t];
-//~ 				$.writeln("SOURCE: " + tcr.name);
-//~ 			}
-			
-			var myCrossReferenceSource = myDocument.crossReferenceSources.add(crossTextEndIns,crossRefstyle,{name: "ZotRefBacklink_" + currentCitekeyItem.citeKey + "-" + u,label: "zotRefBacklink"});
+
+			//create a new cross refrence source
+			var myCrossReferenceSource = myDocument.crossReferenceSources.add(crossTextEndIns,crossRefFormat,{name: "ZotRefBacklink_" + currentCitekeyItem.citeKey + "-" + u,label: "zotRefBacklink"});
+			//create the link back to the usage of the reference
 			myDocument.hyperlinks.add(myCrossReferenceSource,currentUsage,{name: i + "_" + " _" + u + "_" + currentKey,label:"zotrefHyperlink"});
-			
-			//TODO: continue HERE! add a real link to the textanchor (currentUsage is an anchor)
 		}
 	}
 
@@ -1196,6 +1192,24 @@ function returnLayerOrCreatenew(layerName){
 		layer = myDocument.layers.add({name: layerName});
 	}
 	return layer;
+}
+
+function returnCrossrefFormatOrCreatenew(crossRefFormatName, crossRefProperties, buildingBlocksIfNew){
+	var crFormat;
+	crFormat = myDocument.crossReferenceFormats.item(crossRefFormatName);
+	try{
+		name = crFormat.name;
+	} catch(e) {
+		crFormat = myDocument.crossReferenceFormats.add(crossRefFormatName, crossRefProperties);
+		//if building blocks are given, add these after creation
+		if (buildingBlocksIfNew != undefined && buildingBlocksIfNew.length > 0){
+			for (var i = 0; i < buildingBlocksIfNew.length; i++){
+				//for some reason, the null of the third parameter is not accepted when passing the values from an array. a null is thus changed to an empty string, which will be ignored (unless the block is a custom text)
+				crFormat.buildingBlocks.add(buildingBlocksIfNew[i][0],buildingBlocksIfNew[i][1],buildingBlocksIfNew[i][2] == null ? "" : buildingBlocksIfNew[i][2]);
+			}
+		}
+	}
+	return crFormat;
 }
 
 //return an existing object style or create a new object style. if preferences are given, these will be applied to the new object style only.
