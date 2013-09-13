@@ -350,7 +350,7 @@ function myImportXMLFileUsingDefaults(){
 	//delete all hyperlink destinations
 	if (myDocument.hyperlinkTextDestinations.length > 0){
 		for (var i = myDocument.hyperlinkTextDestinations.length - 1; i >= 0; i--){
-			if (myDocument.hyperlinkTextDestinations[i].label == 'zotrefLinkDest') {
+			if (myDocument.hyperlinkTextDestinations[i].label == 'zotrefLinkDest' || myDocument.hyperlinkTextDestinations[i].label == 'zotrefBackLinkDest') {
 				myDocument.hyperlinkTextDestinations[i].remove();
 			}
 		}
@@ -417,6 +417,7 @@ function myImportXMLFileUsingDefaults(){
 		myProgressPanel.myText.text = "Building bibliography " + (i+1) + "/" + myCitekeyInfo.citeKeyArray.length + ": " + myCitekeyInfo.citeKeyArray[i].citeKey;
 		myProgressPanel.myProgressBar.value += individualBibliographyItemProgressBarSpace / myCitekeyInfo.citeKeyArray.length;
 		
+		//search for citekey in the xml document
 		xmlcontents:
 		for(var c = 0; c < xc .length(); c++){
 			if (xc[c].citeKey == myCitekeyInfo.citeKeyArray[i].citeKey){
@@ -426,14 +427,17 @@ function myImportXMLFileUsingDefaults(){
 				addFormattedTextToStory(myRefTextFrame,styleAuthor, getAuthorNames(xc[c]),referenceParagraphStyle);
 				addFormattedTextToStory(myRefTextFrame,styleTitle,  getTitle(xc[c]));
 				addFormattedTextToStory(myRefTextFrame,styleTitle,  getPublishedIn(xc[c]));
-				addFormattedTextToStory(myRefTextFrame,styleYear,   getYearAndPublisher(xc[c]));
-				//safe link to entire paragraph in metadata
+				addFormattedTextToStory(myRefTextFrame,styleYear,  getYearAndPublisher(xc[c]));
+				//safe an insertion point in the paragraph in metadata to later be able to adress the paragraph (ie. for duplication of the paragraph into a button)
 				myCitekeyInfo.citeKeyArray[i].bibParagraphInsertionPoint = myRefTextFrame.parentStory.insertionPoints[-2].index; //use -2, to not get the last insertionpoint, which moves as new content is added
 				continue findings;
 			}
 		}
 		error_general.push("CITEKEY NOT FOUND: " + myCitekeyInfo.citeKeyArray[i].citeKey);
 	}
+
+	//add a final linebreak to story. otherwise, we cannot insert things after the last paragraph
+	addFormattedTextToStory(myRefTextFrame,false, "\r",false);
 
 	myProgressPanel.myText.text = "Parsing tags in document";
 	myProgressPanel.myProgressBar.value = myMaximumValue;
@@ -519,7 +523,7 @@ function myImportXMLFileUsingDefaults(){
 		}
 		
 		stime.addtime("loop " + r + " hyperlinks");
-
+		
 		//add hover effects
 		//create new
 		if (createHoveringReferences == true){
@@ -533,7 +537,27 @@ function myImportXMLFileUsingDefaults(){
 		}
 
 		stime.addtime("loop " + r + " hover effects");
+		
+		//now add the page number of this reference to the bibliography
+		$.writeln(currentCitekeyItem.bibParagraphInsertionPoint);
+		var thisHyperlinkDestination = myDocument.hyperlinkTextDestinations.add(currentRefTagXMLElement.insertionPoints.firstItem(),{name:"back-" + currentKey + "-to-" + r, label: 'zotrefBackLinkDest'}); //create a linkdestination to the reference in the text. this will be linked in the bibliography (with the small page numbers)
+		currentCitekeyItem.usages.push(thisHyperlinkDestination);
 	}
+
+	//now, add the page usages to the bibliography, that has already been created
+	for(var i = myCitekeyInfo.citeKeyArray.length - 1; i >= 0; i--){
+		var currentCitekeyItem = myCitekeyInfo.citeKeyArray[i];
+		var currentText = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
+		currentText.contents += " ... ck = " + currentCitekeyItem.citeKey;
+		currentText.contents += " !";
+		
+		for(var u = 0; u < currentCitekeyItem.usages.length; u++){
+			var currentUsage = currentCitekeyItem.usages[u];
+			currentText.contents += " PAGE " + currentUsage.destinationText.parentTextFrames[0].parentPage.name;
+			//TODO: continue HERE! add a real link to the textanchor (currentUsage is an anchor)
+		}
+	}
+
 
 	//check for ambiguities
 	if (checkForAmbiguousCitekeys){
@@ -878,6 +902,7 @@ function CiteKeyMeta(citeKey){
 	this.found = false;
 	this.hyperlinkTextDestination;
 	this.bibParagraphInsertionPoint;
+	this.usages = new Array(); //contains all usages in form of a hyperlinkTextSource (text anchor)
 }
 
 /* Class to story citekey array and receive and output metadatainfo. also to query the citekey array */
