@@ -571,7 +571,7 @@ function myImportXMLFileUsingDefaults(){
 					[BuildingBlockTypes.PAGE_NUMBER_BUILDING_BLOCK,null,null],
 					[BuildingBlockTypes.CUSTOM_STRING_BUILDING_BLOCK,null,"]"]					
 				];
-			var crossRefFormat = returnCrossrefFormatOrCreatenew('Backlink14',null,crossRefFormatBuildingBlocks); //myDocument.crossReferenceFormats.itemByName('Backlink'); //TODO: i8n
+			var crossRefFormat = returnCrossrefFormatOrCreatenew('Backlink',null,crossRefFormatBuildingBlocks); //myDocument.crossReferenceFormats.itemByName('Backlink'); //TODO: i8n
 			
 
 			//create a new cross refrence source
@@ -1194,6 +1194,8 @@ function returnLayerOrCreatenew(layerName){
 	return layer;
 }
 
+//return the crossrefformat or create a new one, if not found.
+//also create building blocks, if an array is given
 function returnCrossrefFormatOrCreatenew(crossRefFormatName, crossRefProperties, buildingBlocksIfNew){
 	var crFormat;
 	crFormat = myDocument.crossReferenceFormats.item(crossRefFormatName);
