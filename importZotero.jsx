@@ -36,6 +36,7 @@ var langAuthorConnector = "and";
 var langEditorString = "Edt.";
 var langOnlineAsOfString = "online as of";
 var xmlSettingsTag = 'zoteroImportSettings';
+var neutralCharacterStyleBetweenPageUsages = false;
 
 //progress bar und timer
 var individualReferenceProgressBarSpace = 50
@@ -567,6 +568,7 @@ function myImportXMLFileUsingDefaults(){
 		
 		//now parse all references (safed in the myCitekeyInfo Array)
 		for(var i = myCitekeyInfo.citeKeyArray.length - 1; i >= 0; i--){
+			myProgressPanel.myText.text = "Adding backlinks - " + (myCitekeyInfo.citeKeyArray.length - i)+ "/" + myCitekeyInfo.citeKeyArray.length;
 			var currentCitekeyItem = myCitekeyInfo.citeKeyArray[i];
 
 			if (currentCitekeyItem.usages.length > 0){
@@ -575,7 +577,12 @@ function myImportXMLFileUsingDefaults(){
 				//parse all usages
 				for(var u = 0; u < currentCitekeyItem.usages.length; u++){
 					//add a space and comma
-					myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2].contents += (u > 0 ? ", " : " ");
+					var currentParagraphLastInsertionPoint = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
+					//reset character style between page usages if set
+					if (neutralCharacterStyleBetweenPageUsages){
+						currentParagraphLastInsertionPoint.appliedCharacterStyle = myDocument.characterStyles[0]; //no character style for things between the page numbers
+					}
+					currentParagraphLastInsertionPoint.contents += (u > 0 ? ", " : " ");
 					
 					//the usage (linkdestination) of that loop
 					var currentUsage = currentCitekeyItem.usages[u];
