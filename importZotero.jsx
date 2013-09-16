@@ -8,7 +8,7 @@ var myDocument, myXML;
 //styles, tags, layer
 var parsedReferenceStyle, parsedReferenceTag, noReferenceStyle;
 var referenceParagraphStyle, referenceParagraphStyleHead;
-var styleAuthor, styleYear, styleTitle;
+var styleAuthor, styleYear, styleTitle, styleBacklink;
 var hoverObjectLayer; //the layer for hover objects
 var hoverObjectStyle; //the style for hover objects (the hidden ones)
 var hoverTriggerStyle; //the style for the objects (rectangles) that mask the text and trigger the hover object
@@ -28,6 +28,7 @@ var removedOld = 0;
 //settings
 var showStatistics, showWarnings, checkForAmbiguousCitekeys;
 var createHoveringReferences;
+var createBacklinksToPages;
 var defaultDirectory = false;
 var useDefaultDirectory = false;
 var langBibliographyName = "References";
@@ -65,6 +66,7 @@ function main(){
 	noReferenceStyle = myDocument.characterStyles[0]; //[0] should always be equal to [None], but as the name for [none] is internationalised, we cannot use myDocument.characterStyles.item("[None]"),  but have to use the first object in the document character styles array
 	styleAuthor = returnCharacterStyleOrCreatenew("REF-Autor","References");
 	styleYear = returnCharacterStyleOrCreatenew("REF-Jahr","References");
+	styleBacklink= returnCharacterStyleOrCreatenew("REF-Backlink","References",{pointSize:8});
 	styleTitle = returnCharacterStyleOrCreatenew("REF-Titel","References");
 	referenceParagraphStyle = returnParagraphStyleOrCreatenew("References", "References", {
 		leftIndent: 6,
@@ -552,32 +554,46 @@ function myImportXMLFileUsingDefaults(){
 	myProgressPanel.myText.text = "Adding backlinks";
 
 	//now, add the page usages to the bibliography, that has already been created
-	for(var i = myCitekeyInfo.citeKeyArray.length - 1; i >= 0; i--){
-		var currentCitekeyItem = myCitekeyInfo.citeKeyArray[i];
+	if (createBacklinksToPages){
+		//first, create a link format
+		//which reference format to use
+		var crossRefFormatBuildingBlocks =
+			[	//this array should be containing all parameters (3) needed for buildingBlocks.add
+				[BuildingBlockTypes.CUSTOM_STRING_BUILDING_BLOCK,null,"["],
+				[BuildingBlockTypes.PAGE_NUMBER_BUILDING_BLOCK,null,null],
+				[BuildingBlockTypes.CUSTOM_STRING_BUILDING_BLOCK,null,"]"]					
+			];
+		var crossRefFormat = returnCrossrefFormatOrCreatenew('Backlink',null,crossRefFormatBuildingBlocks); //myDocument.crossReferenceFormats.itemByName('Backlink'); //TODO: i8n
+		
+		//now parse all references (safed in the myCitekeyInfo Array)
+		for(var i = myCitekeyInfo.citeKeyArray.length - 1; i >= 0; i--){
+			var currentCitekeyItem = myCitekeyInfo.citeKeyArray[i];
 
-		for(var u = 0; u < currentCitekeyItem.usages.length; u++){
-			//add a space
-			myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2].contents += (u > 0 ? ", " : " ");
-			
-			//the usage (linkdestination) of that loop
-			var currentUsage = currentCitekeyItem.usages[u];
-			//the end of the current paragraph
-			var crossTextEndIns = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
+			if (currentCitekeyItem.usages.length > 0){
+				//sort array by page number
+				currentCitekeyItem.usages.sort(sortLinkDestinationArrayByPage);
+				//parse all usages
+				for(var u = 0; u < currentCitekeyItem.usages.length; u++){
+					//add a space and comma
+					myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2].contents += (u > 0 ? ", " : " ");
+					
+					//the usage (linkdestination) of that loop
+					var currentUsage = currentCitekeyItem.usages[u];
+					//the end of the current paragraph
+					var crossTextEndIns = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
 
-			//which reference format to use
-			var crossRefFormatBuildingBlocks =
-				[	//this array should be containing all parameters (3) needed for buildingBlocks.add
-					[BuildingBlockTypes.CUSTOM_STRING_BUILDING_BLOCK,null,"["],
-					[BuildingBlockTypes.PAGE_NUMBER_BUILDING_BLOCK,null,null],
-					[BuildingBlockTypes.CUSTOM_STRING_BUILDING_BLOCK,null,"]"]					
-				];
-			var crossRefFormat = returnCrossrefFormatOrCreatenew('Backlink',null,crossRefFormatBuildingBlocks); //myDocument.crossReferenceFormats.itemByName('Backlink'); //TODO: i8n
-			
-
-			//create a new cross refrence source
-			var myCrossReferenceSource = myDocument.crossReferenceSources.add(crossTextEndIns,crossRefFormat,{name: "ZotRefBacklink_" + currentCitekeyItem.citeKey + "-" + u,label: "zotRefBacklink"});
-			//create the link back to the usage of the reference
-			myDocument.hyperlinks.add(myCrossReferenceSource,currentUsage,{name: i + "_" + " _" + u + "_" + currentKey,label:"zotrefHyperlink"});
+					//create a new cross refrence source
+					var myCrossReferenceSource = myDocument.crossReferenceSources.add(crossTextEndIns,crossRefFormat,{
+							name: "ZotRefBacklink_" + currentCitekeyItem.citeKey + "-" + u,
+							label: "zotRefBacklink",
+							appliedCharacterStyle: styleBacklink});
+					//create the link back to the usage of the reference
+					myDocument.hyperlinks.add(myCrossReferenceSource,currentUsage,{name: i + "_" + " _" + u + "_" + currentKey,label:"zotrefHyperlink"});
+				}
+			} else {
+				//warn if there are no usages
+				notice_general.push("No usages (link destinations) found for " + currentCitekeyItem.citeKey);
+			}
 		}
 	}
 
@@ -1014,6 +1030,12 @@ function CiteKeyInfo(){
 	}
 }
 
+//sort function for arrays that contain linktextdestinations
+//sorts by page number of the link destination
+function sortLinkDestinationArrayByPage(a,b){
+	return parseInt(a.destinationText.parentTextFrames[0].parentPage.name) > parseInt(b.destinationText.parentTextFrames[0].parentPage.name);
+}
+
 function getYearAndPublisher(modPart){
 	var genre = modPart.xpath("genre[@authority='local']");
 	var year;
@@ -1255,6 +1277,7 @@ function userSettingsDialog(){
 		with(borderPanels.add()){
 			with(dialogColumns.add()){
 				var createHoveringReferencesSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("createHoveringReferences") == 'yes' ? true : (checkOrWriteSetting("createHoveringReferences") == 'no' ? false : false)), staticLabel: "Interactive reference tooltips"});
+				var createBacklinksToPagesSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("createBacklinksToPages") == 'yes' ? true : (checkOrWriteSetting("createBacklinksToPages") == 'no' ? false : false)), staticLabel: "Link back to citation in bibliography (showing page numbers)"});
 			}
 		}
 
@@ -1301,6 +1324,8 @@ function userSettingsDialog(){
 		checkOrWriteSetting("checkForAmbiguousCitekeys",(checkForAmbiguousCitekeys == true ? "yes" : "no"));
 		createHoveringReferences = createHoveringReferencesSetting.checkedState;
 		checkOrWriteSetting("createHoveringReferences",(createHoveringReferences == true ? "yes" : "no"));
+		createBacklinksToPages = createBacklinksToPagesSetting.checkedState;
+		checkOrWriteSetting("createBacklinksToPages",(createBacklinksToPages == true ? "yes" : "no"));
 
 		myDialog.destroy();
 		return true;
