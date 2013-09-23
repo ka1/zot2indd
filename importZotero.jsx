@@ -39,9 +39,10 @@ var xmlSettingsTag = 'zoteroImportSettings';
 var neutralCharacterStyleBetweenPageUsages = false;
 
 //progress bar und timer
-var individualReferenceProgressBarSpace = 50
-var individualBibliographyItemProgressBarSpace = 20
-var myMaximumValue = 50;
+var individualReferenceProgressBarSpace = 50;
+var individualBibliographyItemProgressBarSpace = 20;
+var individualBacklinksProgressBarSpace = 20;
+var myMaximumValue = 32;
 var myProgressBarWidth = 400;
 var myReferenceTooltipIndexCounter = 0;
 var timeStart, timeEnd;
@@ -139,7 +140,7 @@ function main(){
 	timeStart = new Date().getTime();
 
 	//progress bar
-	myCreateProgressPanel((createHoveringReferences ? myMaximumValue + individualReferenceProgressBarSpace : myMaximumValue), myProgressBarWidth);
+	myCreateProgressPanel(myMaximumValue + individualReferenceProgressBarSpace + (createBacklinksToPages ? individualBacklinksProgressBarSpace : 0), myProgressBarWidth);
 	myProgressPanel.show();
 	myProgressPanel.myProgressBar.value = 0;
 	myProgressPanel.myText.text = "Starting Import";
@@ -174,7 +175,7 @@ function main(){
 //asks for a xml file and imports it using set defaults
 function myImportXMLFileUsingDefaults(){
 	myProgressPanel.myText.text = "Loading XML File";
-	myProgressPanel.myProgressBar.value = 2;
+	myProgressPanel.myProgressBar.value = 1;
 	
 	//xml file pre-read
 	var myXMLFile;
@@ -200,7 +201,6 @@ function myImportXMLFileUsingDefaults(){
 	myXMLFile.open('r');
 	
 	myProgressPanel.myText.text = "Reading XML File";
-	myProgressPanel.myProgressBar.value = 3;
 
 	var myXMLStr = myXMLFile.read(); //read XML file into variable
 	myXMLFile.close(); //close XML file
@@ -214,7 +214,6 @@ function myImportXMLFileUsingDefaults(){
 	//$.writeln('Number of references in XML found: ' + xc .length());
 	
 	myProgressPanel.myText.text = "Finding new citations";
-	myProgressPanel.myProgressBar.value = 5;
 	
 	//USING FIND
 	// Clear the find/change grep preferences
@@ -233,7 +232,6 @@ function myImportXMLFileUsingDefaults(){
 	app.changeGrepPreferences = NothingEnum.NOTHING;
 
 	myProgressPanel.myText.text = "Parsing new citations";
-	myProgressPanel.myProgressBar.value = 7;
 
 	for (var i = myFindings.length - 1; i >= 0; i--){
 		myProgressPanel.myText.text = "Parsing new citations (" + (myFindings.length - i) + "/" + myFindings.length + ")";
@@ -292,13 +290,13 @@ function myImportXMLFileUsingDefaults(){
 	}
 
 	myProgressPanel.myText.text = "Parsing document structure";
-	myProgressPanel.myProgressBar.value = 9;
+	myProgressPanel.myProgressBar.value = 2;
 
 	myXML= myDocument.xmlElements[0];
 	var allReferenceTags = myXML.evaluateXPathExpression("//referencetag");
 
 	myProgressPanel.myText.text = "Deleting empty elements";
-	myProgressPanel.myProgressBar.value = 11;
+	myProgressPanel.myProgressBar.value = 3;
 
 	//now, all new citekeys have been tagged. we can parse the document xml and collect unique citekeys. go backwards, because we want to delete empty elements
 	for (var r = allReferenceTags.length - 1; r >=0 ; r--){
@@ -325,22 +323,23 @@ function myImportXMLFileUsingDefaults(){
 	}
 
 	myProgressPanel.myText.text = "Sorting references";
-	myProgressPanel.myProgressBar.value = 13;
+	myProgressPanel.myProgressBar.value = 4;
 
 	//sort references in bibliography by citekey
 	myCitekeyInfo.sortKeys();
 
 	myProgressPanel.myText.text = "Deleting old hyperlink sources";
-	myProgressPanel.myProgressBar.value = 15;
+	myProgressPanel.myProgressBar.value = 5;
 
 	//CLEAN UP
 	//delete existing hyperlink sources (text anchors within the xmlelement.content)
 	if (myDocument.hyperlinkTextSources.length > 0){
 		for(var i = myDocument.hyperlinkTextSources.length -1; i >= 0; i--){
+			//$.writeln("checking hyperlink source " + i + " (" + myDocument.hyperlinkTextSources[i].name + ")");
 			//do not remove the contents of the comment around the OR condition. this might be needed to clean older files, that did not use labels but used names starting with ZotRefSrc (as they do now, but regex match is slow...)
 			//somehow, the second "or" condition seems to be necessary, even though the label should identify all links.
 			//TODO: check why the regex is necessary
-			if (myDocument.hyperlinkTextSources[i].label == 'zotrefLinksrc' || myDocument.hyperlinkTextSources[i].name.match(/ZotRefSrc[0-9]+/i)){
+			if (myDocument.hyperlinkTextSources[i].label == 'zotrefLinksrc' || myDocument.hyperlinkTextSources[i].label == 'zotRefBacklinkSource' || myDocument.hyperlinkTextSources[i].name.match(/ZotRefSrc[0-9]+/i)){
 				//$.writeln("deleted source: " + allHyperlinkSources[i].name + ", label: " + allHyperlinkSources[i].label);
 				myDocument.hyperlinkTextSources[i].remove();
 			}
@@ -348,24 +347,26 @@ function myImportXMLFileUsingDefaults(){
 	}
 
 	myProgressPanel.myText.text = "Deleting old hyperlink destinations";
-	myProgressPanel.myProgressBar.value = 17;
+	myProgressPanel.myProgressBar.value = 6;
 
 	//delete all hyperlink destinations
 	if (myDocument.hyperlinkTextDestinations.length > 0){
 		for (var i = myDocument.hyperlinkTextDestinations.length - 1; i >= 0; i--){
+			//$.writeln("checking hyperlink destination " + i + " (" + myDocument.hyperlinkTextDestinations[i].label + ")");
 			if (myDocument.hyperlinkTextDestinations[i].label == 'zotrefLinkDest' || myDocument.hyperlinkTextDestinations[i].label == 'zotrefBackLinkDest') {
 				myDocument.hyperlinkTextDestinations[i].remove();
 			}
 		}
 	}
 
-	myProgressPanel.myText.text = "Deleting old hyperlink";
-	myProgressPanel.myProgressBar.value = 22;
+	myProgressPanel.myText.text = "Deleting old hyperlinks";
+	myProgressPanel.myProgressBar.value = 7;
 
 	//delete all hyperlinks (seems to be unnecessary as hyperlinks (src - dest)) are automatically deleted when the hyperlink source is deleted)
 	//hyperlink destinations need not to be deleted as they are deleted with the emptying of the reference frame
 	if (myDocument.hyperlinks.length > 0){
 		for (var i = myDocument.hyperlinks.length - 1; i >= 0; i--){
+			//$.writeln("checking hyperlink " + i + " (" + myDocument.hyperlinks[i].label + ")");
 			if (myDocument.hyperlinks[i].label == 'zotrefHyperlink'){
 				myDocument.hyperlinks[i].remove();
 			}
@@ -373,7 +374,7 @@ function myImportXMLFileUsingDefaults(){
 	}
 
 	myProgressPanel.myText.text = "Deleting old tooltip buttons and trigger buttons";
-	myProgressPanel.myProgressBar.value = 25;
+	myProgressPanel.myProgressBar.value = 8;
 
 	//remove all old hover and trigger buttons
 	for(var i = myDocument.buttons.length - 1; i >=0; i--){
@@ -383,7 +384,7 @@ function myImportXMLFileUsingDefaults(){
 	}
 
 	myProgressPanel.myText.text = "Looking for bibliography textframe";
-	myProgressPanel.myProgressBar.value = 28;
+	myProgressPanel.myProgressBar.value = 9;
 
 	//CREATE REFERENCE TEXT FRAME
 	//find reference text frame
@@ -412,7 +413,7 @@ function myImportXMLFileUsingDefaults(){
 	}
 
 	myProgressPanel.myText.text = "Building bibliography";
-	myProgressPanel.myProgressBar.value = myMaximumValue - individualBibliographyItemProgressBarSpace;
+	myProgressPanel.myProgressBar.value = 10; //the loop will add 20 to that (=individualBibliographyItemProgressBarSpace)
 
 	//search for citekey in the xml file and add to the references textframe
 	findings:
@@ -439,11 +440,14 @@ function myImportXMLFileUsingDefaults(){
 		error_general.push("CITEKEY NOT FOUND: " + myCitekeyInfo.citeKeyArray[i].citeKey);
 	}
 
+	myProgressPanel.myText.text = "Adding bibliography to textframe";
+	myProgressPanel.myProgressBar.value = 31;
+
 	//add a final linebreak to story. otherwise, we cannot insert things after the last paragraph
 	addFormattedTextToStory(myRefTextFrame,false, "\r",false);
 
 	myProgressPanel.myText.text = "Parsing tags in document";
-	myProgressPanel.myProgressBar.value = myMaximumValue;
+	myProgressPanel.myProgressBar.value = 32; //the loop will add 50 to that (=individualReferenceProgressBarSpace)
 
 	stime = new splittime();
 
@@ -460,13 +464,9 @@ function myImportXMLFileUsingDefaults(){
 		
 		stime.addtime("loop " + r + " vars (" + currentKey + ")");
 
-		if (createHoveringReferences) {
-			//detailled progress bar for tooltips
-			myProgressPanel.myText.text = "Reference and tooltip " + (r+1) + "/" + allReferenceTags.length + ": " + currentKey;
-			myProgressPanel.myProgressBar.value += individualReferenceProgressBarSpace / allReferenceTags.length;
-		} else {
-			myProgressPanel.myText.text = "Reference " + (r+1) + "/" + allReferenceTags.length + ": " + currentKey;
-		}
+		//detailled progress bar for tooltips
+		myProgressPanel.myText.text = "Reference " + (createHoveringReferences ? "and tooltip " : "") + (r+1) + "/" + allReferenceTags.length + ": " + currentKey;
+		myProgressPanel.myProgressBar.value += individualReferenceProgressBarSpace / allReferenceTags.length;
 		
 		//write NOT FOUND tag into reference keys that where not found in the parsed xml file. parse a file where they exist and the text will be replaced by the valid reference info
 		if (currentCitekeyItem.found == false){
@@ -552,7 +552,10 @@ function myImportXMLFileUsingDefaults(){
 		}
 	}
 
-	myProgressPanel.myText.text = "Adding backlinks";
+	myProgressPanel.myText.text = "Adding backlinks"; //individualBacklinksProgressBarSpace
+	myProgressPanel.myProgressBar.value = 83; //the following loop, if backlinks are activated, will add 20 to that (=individualBacklinksProgressBarSpace)
+	
+	stime.addtime("done with loop");
 
 	//now, add the page usages to the bibliography, that has already been created
 	if (createBacklinksToPages){
@@ -569,6 +572,8 @@ function myImportXMLFileUsingDefaults(){
 		//now parse all references (safed in the myCitekeyInfo Array)
 		for(var i = myCitekeyInfo.citeKeyArray.length - 1; i >= 0; i--){
 			myProgressPanel.myText.text = "Adding backlinks - " + (myCitekeyInfo.citeKeyArray.length - i)+ "/" + myCitekeyInfo.citeKeyArray.length;
+			myProgressPanel.myProgressBar.value += individualBacklinksProgressBarSpace / myCitekeyInfo.citeKeyArray.length;
+			
 			var currentCitekeyItem = myCitekeyInfo.citeKeyArray[i];
 
 			if (currentCitekeyItem.usages.length > 0){
@@ -591,8 +596,8 @@ function myImportXMLFileUsingDefaults(){
 
 					//create a new cross refrence source
 					var myCrossReferenceSource = myDocument.crossReferenceSources.add(crossTextEndIns,crossRefFormat,{
-							name: "ZotRefBacklink_" + currentCitekeyItem.citeKey + "-" + u,
-							label: "zotRefBacklink",
+							name: "ZotRefBacklinkSource_" + currentCitekeyItem.citeKey + "-" + u,
+							label: "zotRefBacklinkSource",
 							appliedCharacterStyle: styleBacklink});
 					//create the link back to the usage of the reference
 					myDocument.hyperlinks.add(myCrossReferenceSource,currentUsage,{name: i + "_" + " _" + u + "_" + currentKey,label:"zotrefHyperlink"});
@@ -604,7 +609,8 @@ function myImportXMLFileUsingDefaults(){
 		}
 	}
 
-
+	stime.addtime("backlinks");
+	
 	//check for ambiguities
 	if (checkForAmbiguousCitekeys){
 		myProgressPanel.myText.text = "Checking for ambiguous citekeys";
@@ -641,6 +647,8 @@ function myImportXMLFileUsingDefaults(){
 			}
 		}
 	}
+
+	stime.addtime("ambiguous citekeys");
 
 	myProgressPanel.myText.text = "Done";
 	myProgressPanel.myProgressBar.value = myProgressPanel.myProgressBar.maxvalue;
