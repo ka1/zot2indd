@@ -14,7 +14,7 @@ ________________________________________
 
 The JS files ("BibTexCiteKeyOnly.js" and "MODS modified by Kai.js") need to be copied into the translators directory of zotero. This can be in two different locations, depending on the version (stand alone or firefox browser plugin) of zotero:
 - ~/Library/Application Support/Firefox/Profiles/[random]/zotero/translators
-- ~/Library/Application Support/Zotero/Profiles/[random]/translators
+- ~/Library/Application Support/Zotero/Profiles/[random]/zotero/translators
 Copy the files into the one directory that exists.
 
 In Zotero, you should see two new exporters:
