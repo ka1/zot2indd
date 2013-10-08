@@ -8,6 +8,9 @@ Import your Zotero Citations to InDesign and use Latex like syntax (ie. "\cite{a
 This is meant to give some inspiration and starting point to Indesign + Zotero users. It's nowhere near bug free. Comments are welcome, however I cannot promise the implementation of feature requests or modifications.
 Also, the reference style is customized to my personal demands, but should be customizable given some knowledge of Indesigns javascript.
 
+The Zotero Scripts are tested with Zotero Version 4.0.11.
+The Adobe InDesign Scripts are developed and tested in Adobe Indesign CC, but use the script tag app.scriptPreferences.version = 8. With 8 being CS6, all should work in CS6, too.
+
 **Use at your own risk ;)**
 
 ________________________________________
