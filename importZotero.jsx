@@ -1132,7 +1132,7 @@ function getTitle(modPart){
 	} else {
 		//safe title in citekeyinfo and return
 		myCitekeyInfo.safeTitle(modPart.citeKey,title);
-		return ", \"" + title + "\"";
+		return ", „" + title + "”";
 	}
 }
 
