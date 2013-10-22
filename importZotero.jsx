@@ -1334,9 +1334,11 @@ function userSettingsDialog(){
 			staticTexts.add({staticLabel:"Messages"});
 		}
 		with(borderPanels.add()){
-			var showStatisticsSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("showStatistics") == 'yes' ? true : (checkOrWriteSetting("showStatistics") == 'no' ? false : true)), staticLabel: "show statistics"});
-			var showWarningsSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("showWarnings") == 'yes' ? true : (checkOrWriteSetting("showWarnings") == 'no' ? false : true)), staticLabel: "show warnings"});
-			var checkForAmbiguousCitekeysSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'yes' ? true : (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'no' ? false : true)), staticLabel: "show ambiguous citekeys"});
+			with (dialogColumns.add()){
+				var showStatisticsSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("showStatistics") == 'yes' ? true : (checkOrWriteSetting("showStatistics") == 'no' ? false : true)), staticLabel: "show statistics"});
+				var showWarningsSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("showWarnings") == 'yes' ? true : (checkOrWriteSetting("showWarnings") == 'no' ? false : true)), staticLabel: "show warnings"});
+				var checkForAmbiguousCitekeysSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'yes' ? true : (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'no' ? false : true)), staticLabel: "show ambiguous citekeys"});
+			}
 		}
 
 		with(dialogRows.add()){
@@ -1354,7 +1356,6 @@ function userSettingsDialog(){
 				with (dialogRows.add()){
 					staticTexts.add({staticLabel:"Backlinks create hyperlinks from the bibliography item to the citation."});
 				}
-				//staticTexts.add({staticLabel:"Link back to citation in bibliography (showing page numbers)",staticAlignment: StaticAlignmentOptions.LEFT_ALIGN});
 				backlinksIgnoreRedundantPagesSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("backlinksIgnoreRedundantPages") == 'yes' ? true : false), staticLabel: "Include multiple links to one page, if cited more than once on a page"});
 				backlinksIgnoreOverflowTextSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("backlinksIgnoreOverflowText") == 'yes' ? true : false), staticLabel: "Also include links to overflow text"});
 			}
