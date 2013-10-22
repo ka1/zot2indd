@@ -581,12 +581,18 @@ function myImportXMLFileUsingDefaults(){
 				currentCitekeyItem.usages.sort(sortLinkDestinationArrayByPage);
 				//parse all usages
 				for(var u = 0; u < currentCitekeyItem.usages.length; u++){
+					//ignore overflow text
+					if (checkLinkdestinationForOverflow(currentCitekeyItem.usages[u]) !== true){
+						continue;
+					}
+					
 					//add a space and comma
 					var currentParagraphLastInsertionPoint = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
 					//reset character style between page usages if set
 					if (neutralCharacterStyleBetweenPageUsages){
 						currentParagraphLastInsertionPoint.appliedCharacterStyle = myDocument.characterStyles[0]; //no character style for things between the page numbers
 					}
+					//add separation after first or space before first
 					currentParagraphLastInsertionPoint.contents += (u > 0 ? ", " : " ");
 					
 					//the usage (linkdestination) of that loop
@@ -1048,7 +1054,28 @@ function CiteKeyInfo(){
 //sort function for arrays that contain linktextdestinations
 //sorts by page number of the link destination
 function sortLinkDestinationArrayByPage(a,b){
+	if (checkLinkdestinationForOverflow(a) !== true){
+		return false; //controls sorting, but position is meaningless however, because links to overflow text are ignored later
+	} else if (checkLinkdestinationForOverflow(b) !== true){
+		return true; //controls sorting, but position is meaningless however, because links to overflow text are ignored later
+	}
 	return parseInt(a.destinationText.parentTextFrames[0].parentPage.name) > parseInt(b.destinationText.parentTextFrames[0].parentPage.name);
+}
+
+function checkLinkdestinationForOverflow(linkDest){
+	//if text frame is undefined, probably overflow text.
+	if (linkDest.destinationText.parentTextFrames[0] == undefined) {
+		//check if it is overflow text, otherwise, exit with error
+		if (linkDest.destinationText.parentStory.overflows == true) {
+			return false;
+		} else {
+			throw new Error("Parent text frame is undefined, but parent story does not overflow");
+		}
+	}
+	//all ok, text does not overflow
+	else {
+		return true;
+	}
 }
 
 function getYearAndPublisher(modPart){
