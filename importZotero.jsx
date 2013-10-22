@@ -29,6 +29,8 @@ var removedOld = 0;
 var showStatistics, showWarnings, checkForAmbiguousCitekeys;
 var createHoveringReferences;
 var createBacklinksToPages;
+var backlinksIgnoreRedundantPages;
+var backlinksIgnoreOverflowText;
 var defaultDirectory = false;
 var useDefaultDirectory = false;
 var langBibliographyName = "References";
@@ -587,14 +589,21 @@ function myImportXMLFileUsingDefaults(){
 					var currentUsage = currentCitekeyItem.usages[u];
 
 					//ignore overflow text
-					if (checkLinkdestinationForOverflow(currentUsage) !== true){
-						continue;
+					var currentLinkIsOverflow = !checkLinkdestinationForOverflow(currentUsage);
+					
+					if (currentLinkIsOverflow == true){
+						//if overflow text should not be linked
+						if (backlinksIgnoreOverflowText !== true){
+							continue;
+						}
+						//otherwise safe a warning and include the overflow text
+						notice_general.push("Link to " + currentCitekeyItem.citeKey + " (" + u + ") is in overflow section");
 					}
 				
 					//ignore redundant page links
-					var currentLinkDestinationPage = parseInt(currentUsage.destinationText.parentTextFrames[0].parentPage.name);
+					var currentLinkDestinationPage = (currentLinkIsOverflow ? -1 : parseInt(currentUsage.destinationText.parentTextFrames[0].parentPage.name));
 					//compare to previous run
-					if (currentLinkDestinationPage == previousLinkDestinationPage){
+					if (backlinksIgnoreRedundantPages !== true && currentLinkDestinationPage == previousLinkDestinationPage){
 						continue;
 					}
 					//save for later
@@ -618,7 +627,7 @@ function myImportXMLFileUsingDefaults(){
 							label: "zotRefBacklinkSource",
 							appliedCharacterStyle: styleBacklink});
 					//create the link back to the usage of the reference
-					myDocument.hyperlinks.add(myCrossReferenceSource,currentUsage,{name: i + "_" + " _" + u + "_" + currentKey,label:"zotrefHyperlink"});
+					myDocument.hyperlinks.add(myCrossReferenceSource,currentUsage,{name: i + "_" + " _" + u + "_" + currentCitekeyItem.citeKey,label:"zotrefHyperlink"});
 				}
 			} else {
 				//warn if there are no usages
@@ -1321,20 +1330,41 @@ function userSettingsDialog(){
 			}
 		}
 	
-		with(borderPanels.add()){
+		with(dialogRows.add()){
 			staticTexts.add({staticLabel:"Messages"});
+		}
+		with(borderPanels.add()){
 			var showStatisticsSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("showStatistics") == 'yes' ? true : (checkOrWriteSetting("showStatistics") == 'no' ? false : true)), staticLabel: "show statistics"});
 			var showWarningsSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("showWarnings") == 'yes' ? true : (checkOrWriteSetting("showWarnings") == 'no' ? false : true)), staticLabel: "show warnings"});
 			var checkForAmbiguousCitekeysSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'yes' ? true : (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'no' ? false : true)), staticLabel: "show ambiguous citekeys"});
 		}
 
+		with(dialogRows.add()){
+			staticTexts.add({staticLabel:"Options"});
+		}
 		with(borderPanels.add()){
 			with(dialogColumns.add()){
 				var createHoveringReferencesSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("createHoveringReferences") == 'yes' ? true : (checkOrWriteSetting("createHoveringReferences") == 'no' ? false : false)), staticLabel: "Interactive reference tooltips"});
-				var createBacklinksToPagesSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("createBacklinksToPages") == 'yes' ? true : (checkOrWriteSetting("createBacklinksToPages") == 'no' ? false : false)), staticLabel: "Link back to citation in bibliography (showing page numbers)"});
 			}
 		}
 
+		with(dialogRows.add()){
+			var createBacklinksToPagesSetting = enablingGroups.add({staticLabel: "Enable Backlinks", checkedState: (checkOrWriteSetting("createBacklinksToPages") == 'yes' ? true : (checkOrWriteSetting("createBacklinksToPages") == 'no' ? false : false))});
+			with(createBacklinksToPagesSetting.dialogColumns.add()){
+				with (dialogRows.add()){
+					staticTexts.add({staticLabel:"Backlinks create hyperlinks from the bibliography item to the citation."});
+				}
+				//staticTexts.add({staticLabel:"Link back to citation in bibliography (showing page numbers)",staticAlignment: StaticAlignmentOptions.LEFT_ALIGN});
+				backlinksIgnoreRedundantPagesSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("backlinksIgnoreRedundantPages") == 'yes' ? true : false), staticLabel: "Include multiple links to one page, if cited more than once on a page"});
+				backlinksIgnoreOverflowTextSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("backlinksIgnoreOverflowText") == 'yes' ? true : false), staticLabel: "Also include links to overflow text"});
+			}
+		}
+		
+	
+
+		with(dialogRows.add()){
+			staticTexts.add({staticLabel:"Customization "});
+		}
 		with(borderPanels.add()){
 			with(dialogColumns.add()){
 				staticTexts.add({staticLabel:"Title for references page(s):"});
@@ -1380,6 +1410,11 @@ function userSettingsDialog(){
 		checkOrWriteSetting("createHoveringReferences",(createHoveringReferences == true ? "yes" : "no"));
 		createBacklinksToPages = createBacklinksToPagesSetting.checkedState;
 		checkOrWriteSetting("createBacklinksToPages",(createBacklinksToPages == true ? "yes" : "no"));
+		backlinksIgnoreRedundantPages = backlinksIgnoreRedundantPagesSetting.checkedState;
+		checkOrWriteSetting("backlinksIgnoreRedundantPages",(backlinksIgnoreRedundantPages == true ? "yes" : "no"));
+		backlinksIgnoreOverflowText = backlinksIgnoreOverflowTextSetting.checkedState;
+		checkOrWriteSetting("backlinksIgnoreOverflowText",(backlinksIgnoreOverflowText == true ? "yes" : "no"));
+
 
 		myDialog.destroy();
 		return true;
