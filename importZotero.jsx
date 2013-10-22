@@ -576,15 +576,29 @@ function myImportXMLFileUsingDefaults(){
 			
 			var currentCitekeyItem = myCitekeyInfo.citeKeyArray[i];
 
+			//save previous page number to remove redundant page links
+			var previousLinkDestinationPage = 0;
 			if (currentCitekeyItem.usages.length > 0){
 				//sort array by page number
 				currentCitekeyItem.usages.sort(sortLinkDestinationArrayByPage);
 				//parse all usages
 				for(var u = 0; u < currentCitekeyItem.usages.length; u++){
+					//the usage (linkdestination) of that loop
+					var currentUsage = currentCitekeyItem.usages[u];
+
 					//ignore overflow text
-					if (checkLinkdestinationForOverflow(currentCitekeyItem.usages[u]) !== true){
+					if (checkLinkdestinationForOverflow(currentUsage) !== true){
 						continue;
 					}
+				
+					//ignore redundant page links
+					var currentLinkDestinationPage = parseInt(currentUsage.destinationText.parentTextFrames[0].parentPage.name);
+					//compare to previous run
+					if (currentLinkDestinationPage == previousLinkDestinationPage){
+						continue;
+					}
+					//save for later
+					previousLinkDestinationPage = currentLinkDestinationPage;
 					
 					//add a space and comma
 					var currentParagraphLastInsertionPoint = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
@@ -595,8 +609,6 @@ function myImportXMLFileUsingDefaults(){
 					//add separation after first or space before first
 					currentParagraphLastInsertionPoint.contents += (u > 0 ? ", " : " ");
 					
-					//the usage (linkdestination) of that loop
-					var currentUsage = currentCitekeyItem.usages[u];
 					//the end of the current paragraph
 					var crossTextEndIns = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
 
