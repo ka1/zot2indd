@@ -524,7 +524,14 @@ function myImportXMLFileUsingDefaults(){
 		}
 		else {
 			//activate the following line if you want to be notified about skipped links
-			notice_general.push("Already a link: skipping Hyperlink creation for reference " + myReferenceTagText.contents + " on page " + currentRefTagXMLElement.texts[0].parentTextFrames[0].parentPage.name);
+			//find out page number
+			var errorPageNumber;
+			if (currentRefTagXMLElement.texts[0].parentTextFrames[0] == undefined){
+				errorPageNumber = "[OVERFLOW TEXT]";
+			} else {
+				errorPageNumber = currentRefTagXMLElement.texts[0].parentTextFrames[0].parentPage.name;
+			}
+			notice_general.push("Already a link: skipping Hyperlink creation for reference " + myReferenceTagText.contents + " on page " + errorPageNumber);
 		}
 		
 		stime.addtime("loop " + r + " hyperlinks");
