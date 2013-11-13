@@ -1449,7 +1449,7 @@ function userSettingsDialog(){
 		checkForAmbiguousCitekeys = checkForAmbiguousCitekeysSetting.checkedState;
 		checkOrWriteSetting("checkForAmbiguousCitekeys",(checkForAmbiguousCitekeys == true ? "yes" : "no"));
 		redrawMode = redrawModeSetting.checkedState;
-		checkOrWriteSetting("redrawMode",(redrawModeSetting == true ? "yes" : "no"));
+		checkOrWriteSetting("redrawMode",(redrawMode == true ? "yes" : "no"));
 		createHoveringReferences = createHoveringReferencesSetting.checkedState;
 		checkOrWriteSetting("createHoveringReferences",(createHoveringReferences == true ? "yes" : "no"));
 		createBacklinksToPages = createBacklinksToPagesSetting.checkedState;
@@ -1458,7 +1458,6 @@ function userSettingsDialog(){
 		checkOrWriteSetting("backlinksIgnoreRedundantPages",(backlinksIgnoreRedundantPages == true ? "yes" : "no"));
 		backlinksIgnoreOverflowText = backlinksIgnoreOverflowTextSetting.checkedState;
 		checkOrWriteSetting("backlinksIgnoreOverflowText",(backlinksIgnoreOverflowText == true ? "yes" : "no"));
-
 
 		myDialog.destroy();
 		return true;
