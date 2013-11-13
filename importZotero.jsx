@@ -2,7 +2,7 @@
 //(c) 2013 Kai Kasugai
 app.scriptPreferences.version = 8; //Indesign CS6 and later. Use 7.5 to use CS5.5 features
 app.scriptPreferences.userInteractionLevel = UserInteractionLevels.INTERACT_WITH_ALL; //INTERACT_WITH_ALL is the default anyway. just in case you want to change that.
-app.scriptPreferences.enableRedraw = false;
+app.scriptPreferences.enableRedraw = true;
 //$.level = 2;
 
 //global vars
@@ -28,7 +28,7 @@ var foundNew = 0;
 var foundTotal = 0;
 var removedOld = 0;
 //settings
-var showStatistics, showWarnings, checkForAmbiguousCitekeys;
+var showStatistics, showWarnings, checkForAmbiguousCitekeys, redrawMode;
 var createHoveringReferences;
 var createBacklinksToPages;
 var backlinksIgnoreRedundantPages;
@@ -138,6 +138,13 @@ function main(){
 	//ask for options
 	if (!userSettingsDialog()){
 		return false;
+	}
+
+	//set refresh mode
+	if  (redrawMode == false){
+		app.scriptPreferences.enableRedraw = false;
+	} else {
+		app.scriptPreferences.enableRedraw = true;
 	}
 
 	//zeitmessung starten
@@ -610,6 +617,12 @@ function myImportXMLFileUsingDefaults(){
 				for(var u = 0; u < currentCitekeyItem.usages.length; u++){
 					//the usage (linkdestination) of that loop
 					var currentUsage = currentCitekeyItem.usages[u];
+					
+					//check the integrity of the document. see if the link destination is a correct story, or an XML-Story element that was left over after copy paste actions
+					if (currentUsage.destinationText.parentStory.constructor.name == "XmlStory"){
+						error_general.push("Link to " + currentCitekeyItem.citeKey + " (" + u + ") is in an xmlStory Element. Please check your document structure and delete unlinked xmlStories.");
+						continue;
+					}
 
 					//ignore overflow text
 					var currentLinkIsOverflow = !checkLinkdestinationForOverflow(currentUsage);
@@ -1107,13 +1120,17 @@ function sortLinkDestinationArrayByPage(a,b){
 }
 
 function checkLinkdestinationForOverflow(linkDest){
-	//if text frame is undefined, probably overflow text.
+	//if text frame is undefined, probably overflow text. or a left over, non linked xml story that might be left over after copy paste actions.
 	if (linkDest.destinationText.parentTextFrames[0] == undefined) {
+		//check if the story is an xml story, which might be a left over after copy paste actions. the user has to remove this story manually, but there is no error or warning thrown here, because this function is called multiple times. the warning will be thrown when parsing the usages ("parse all usages")
+		if (linkDest.destinationText.parentStory.constructor.name == "XmlStory"){
+			return false;
+		}
 		//check if it is overflow text, otherwise, exit with error
-		if (linkDest.destinationText.parentStory.overflows == true) {
+		else if (linkDest.destinationText.parentStory.overflows == true) {
 			return false;
 		} else {
-			throw new Error("Parent text frame is undefined, but parent story does not overflow");
+			throw new Error("Parent text frame is undefined, but parent story does not overflow and is not an XmlStory");
 		}
 	}
 	//all ok, text does not overflow
@@ -1354,13 +1371,14 @@ function userSettingsDialog(){
 		}
 	
 		with(dialogRows.add()){
-			staticTexts.add({staticLabel:"Messages"});
+			staticTexts.add({staticLabel:"Messages and Feedback"});
 		}
 		with(borderPanels.add()){
 			with (dialogColumns.add()){
 				var showStatisticsSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("showStatistics") == 'yes' ? true : (checkOrWriteSetting("showStatistics") == 'no' ? false : true)), staticLabel: "show statistics"});
 				var showWarningsSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("showWarnings") == 'yes' ? true : (checkOrWriteSetting("showWarnings") == 'no' ? false : true)), staticLabel: "show warnings"});
 				var checkForAmbiguousCitekeysSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'yes' ? true : (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'no' ? false : true)), staticLabel: "show ambiguous citekeys"});
+				var redrawModeSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("redrawMode") == 'yes' ? true : (checkOrWriteSetting("redrawMode") == 'no' ? false : true)), staticLabel: "redraw during script (no progress bar without redrawing)"});
 			}
 		}
 
@@ -1430,6 +1448,8 @@ function userSettingsDialog(){
 		checkOrWriteSetting("showWarnings",(showWarnings == true ? "yes" : "no"));
 		checkForAmbiguousCitekeys = checkForAmbiguousCitekeysSetting.checkedState;
 		checkOrWriteSetting("checkForAmbiguousCitekeys",(checkForAmbiguousCitekeys == true ? "yes" : "no"));
+		redrawMode = redrawModeSetting.checkedState;
+		checkOrWriteSetting("redrawMode",(redrawModeSetting == true ? "yes" : "no"));
 		createHoveringReferences = createHoveringReferencesSetting.checkedState;
 		checkOrWriteSetting("createHoveringReferences",(createHoveringReferences == true ? "yes" : "no"));
 		createBacklinksToPages = createBacklinksToPagesSetting.checkedState;
@@ -1537,7 +1557,7 @@ function myCreateProgressPanel(myMaximumValue, myProgressBarWidth){
 	with(myProgressPanel){
 		test = myProgressPanel.myProgressBar = add('progressbar', [12, 12, myProgressBarWidth, 24], 0, myMaximumValue);
 		myProgressPanel.myText = add('statictext', {x:60, y:0, width:myProgressBarWidth, height:20});
-		myText.text = "Starting";
+		myText.text = (redrawMode ? "Starting" : "Started. Please wait (activate redraw to see progress bar).");
 	}
 }
 
