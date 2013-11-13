@@ -1,6 +1,8 @@
 ﻿//Citation Import for Zotero (modified MOD export) to Indesign CS6 or later
 //(c) 2013 Kai Kasugai
 app.scriptPreferences.version = 8; //Indesign CS6 and later. Use 7.5 to use CS5.5 features
+app.scriptPreferences.userInteractionLevel = UserInteractionLevels.INTERACT_WITH_ALL; //INTERACT_WITH_ALL is the default anyway. just in case you want to change that.
+app.scriptPreferences.enableRedraw = false;
 //$.level = 2;
 
 //global vars
@@ -555,7 +557,21 @@ function myImportXMLFileUsingDefaults(){
 		switch(currentCitetype){
 			case 'default':
 			case 'noBrackets':
-				var thisHyperlinkDestination = myDocument.hyperlinkTextDestinations.add(currentRefTagXMLElement.insertionPoints.firstItem(),{name:"back-" + currentKey + "-to-" + r, label: 'zotrefBackLinkDest'}); //create a linkdestination to the reference in the text. this will be linked in the bibliography (with the small page numbers)
+				try{
+					var thisHyperlinkDestination = myDocument.hyperlinkTextDestinations.add(currentRefTagXMLElement.insertionPoints.firstItem(),{name:"back-" + currentKey + "-to-" + r, label: 'zotrefBackLinkDest'}); //create a linkdestination to the reference in the text. this will be linked in the bibliography (with the small page numbers)
+				} catch(e) {
+					if (e.number == 79110) {
+						//remove the old Hyperlink with the same name. These hyperlinks seem to remain when you copy paste contents via the clipboard - probably because the label is not copied, which is why they are not deleted upon the beginning of this script
+						myDocument.hyperlinkTextDestinations.itemByName("back-" + currentKey + "-to-" + r).remove();
+						//warn about this
+						alert("Deleted old hyperlink \"" + "back-" + currentKey + "-to-" + r + "\". The hyperlink was probably left over after copy-paste actions. No need to worry, however, this error should not occur often and only after copy-paste actions. The script will continue now.");
+						//try again after deleting old link
+						thisHyperlinkDestination = myDocument.hyperlinkTextDestinations.add(currentRefTagXMLElement.insertionPoints.firstItem(),{name:"back-" + currentKey + "-to-" + r, label: 'zotrefBackLinkDest'}); //create a linkdestination to the reference in the text. this will be linked in the bibliography (with the small page numbers)
+					} else {
+						alert("Unknown Error: " + e.message + "\n\nExiting.");
+						exit();
+					}
+				}
 				currentCitekeyItem.usages.push(thisHyperlinkDestination);
 				break;
 		}
