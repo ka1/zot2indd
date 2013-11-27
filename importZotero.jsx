@@ -889,7 +889,7 @@ function getPublishedIn(modPart){
 			var thesisType = modPart.xpath("genre[not(@authority)]");
 			if (thesisType.toString() != '') {
 				publishedIn = ", " + thesisType.toString();
-				$.writeln("thesis type of " + modPart.citeKey + ": " + thesisType.toString());
+				//$.writeln("thesis type of " + modPart.citeKey + ": " + thesisType.toString());
 				return publishedIn;
 			}
 		}
