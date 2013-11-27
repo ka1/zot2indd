@@ -875,16 +875,28 @@ function addFormattedTextToStory(myTextframe,myFormat,myContent,myParagraphForma
 }
 
 function getPublishedIn(modPart){
+	var publishedIn;
 	//return if book (books are not published in anything
 	var genre = modPart.xpath("genre[@authority='local']");
 	if (genre.toString() == 'book' || genre.toString() == 'thesis') {
 		if (modPart.xpath("relatedItem[@type='host']/titleInfo[not(@type = 'abbreviated')]/title") != '') {
 			notice_general.push(modPart.citeKey + ' seems to have a related published medium, but the genre is ' + genre.toString() + '. please check this item');
 		}
+	
+		//check thesis type and return that if found
+		if (genre.toString() == 'thesis'){
+			//see if there is a genre tag without authority attribute (in fact, no attribute, but [not(@*)] causes errors) - this will contain the thesis type
+			var thesisType = modPart.xpath("genre[not(@authority)]");
+			if (thesisType.toString() != '') {
+				publishedIn = ", " + thesisType.toString();
+				$.writeln("thesis type of " + modPart.citeKey + ": " + thesisType.toString());
+				return publishedIn;
+			}
+		}
 		return false;
 	}
 	
-	var publishedIn = modPart.xpath("relatedItem[@type='host']/titleInfo[not(@type = 'abbreviated')]/title");
+	publishedIn = modPart.xpath("relatedItem[@type='host']/titleInfo[not(@type = 'abbreviated')]/title");
 	if (!publishedIn || publishedIn.toString() == "") {
 		//genres that do not necessarily need a published medium
 		if (genre.toString() == 'report'){
