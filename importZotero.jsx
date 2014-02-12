@@ -441,7 +441,7 @@ function myImportXMLFileUsingDefaults(){
 				myCitekeyInfo.citeKeyArray[i].hyperlinkTextDestination = myDocument.hyperlinkTextDestinations.add(myRefTextFrame.parentStory.insertionPoints[-1],{name:"ref-" + xc[c].citeKey, label: 'zotrefLinkDest'}); //create a hyperlink text destination and safe it in the meta data of the citation
 				addFormattedTextToStory(myRefTextFrame,styleAuthor, getAuthorNames(xc[c]),referenceParagraphStyle);
 				addFormattedTextToStory(myRefTextFrame,styleTitle,  getTitle(xc[c]));
-				addFormattedTextToStory(myRefTextFrame,styleTitle,  getPublishedIn(xc[c]));
+				addFormattedTextToStory(myRefTextFrame,styleYear,  getPublishedIn(xc[c]));
 				addFormattedTextToStory(myRefTextFrame,styleYear,  getYearAndPublisher(xc[c]));
 				//safe an insertion point in the paragraph in metadata to later be able to adress the paragraph (ie. for duplication of the paragraph into a button)
 				myCitekeyInfo.citeKeyArray[i].bibParagraphInsertionPoint = myRefTextFrame.parentStory.insertionPoints[-2].index; //use -2, to not get the last insertionpoint, which moves as new content is added
