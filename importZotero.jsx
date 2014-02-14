@@ -28,7 +28,7 @@ var foundNew = 0;
 var foundTotal = 0;
 var removedOld = 0;
 //settings
-var showStatistics, showWarnings, checkForAmbiguousCitekeys, redrawMode;
+var showStatistics, showWarnings, checkForAmbiguousCitekeys, redrawMode, safeBeforeStart;
 var createHoveringReferences;
 var createBacklinksToPages;
 var backlinksIgnoreRedundantPages;
@@ -138,6 +138,10 @@ function main(){
 	//ask for options
 	if (!userSettingsDialog()){
 		return false;
+	}
+
+	if (safeBeforeStart){
+		myDocument.save();
 	}
 
 	//set refresh mode
@@ -1371,7 +1375,7 @@ function returnObjectStyleOrCreatenew(objectStyleName, newObjectStylePreferences
 //to ask for user settings in the beginning
 function userSettingsDialog(){
 	var myDialog = app.dialogs.add({name:"Zotero to Indesign Interface settings"});
-	var useDefaultCheckbox;
+	var useDefaultCheckbox; //only this needs to be initialized here, because we don't even know if we want to show the dialog column
 	//Add a dialog column.
 	with(myDialog.dialogColumns.add()){
 		if (checkOrWriteSetting("defaultDirectory")) {
@@ -1391,6 +1395,7 @@ function userSettingsDialog(){
 				var showWarningsSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("showWarnings") == 'yes' ? true : (checkOrWriteSetting("showWarnings") == 'no' ? false : true)), staticLabel: "show warnings"});
 				var checkForAmbiguousCitekeysSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'yes' ? true : (checkOrWriteSetting("checkForAmbiguousCitekeys") == 'no' ? false : true)), staticLabel: "show ambiguous citekeys"});
 				var redrawModeSetting = checkboxControls.add({checkedState: (checkOrWriteSetting("redrawMode") == 'yes' ? true : (checkOrWriteSetting("redrawMode") == 'no' ? false : true)), staticLabel: "redraw during script (no progress bar without redrawing)"});
+				var safeBeforeStartSetting= checkboxControls.add({checkedState: (checkOrWriteSetting("safeBefore") == 'yes' ? true : (checkOrWriteSetting("safeBefore") == 'no' ? false : false)), staticLabel: "Safe document before running the script"});
 			}
 		}
 
@@ -1462,6 +1467,8 @@ function userSettingsDialog(){
 		checkOrWriteSetting("checkForAmbiguousCitekeys",(checkForAmbiguousCitekeys == true ? "yes" : "no"));
 		redrawMode = redrawModeSetting.checkedState;
 		checkOrWriteSetting("redrawMode",(redrawMode == true ? "yes" : "no"));
+		safeBeforeStart = safeBeforeStartSetting.checkedState;
+		checkOrWriteSetting("safeBefore",(safeBeforeStart == true ? "yes" : "no"));
 		createHoveringReferences = createHoveringReferencesSetting.checkedState;
 		checkOrWriteSetting("createHoveringReferences",(createHoveringReferences == true ? "yes" : "no"));
 		createBacklinksToPages = createBacklinksToPagesSetting.checkedState;
