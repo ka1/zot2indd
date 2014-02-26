@@ -662,6 +662,7 @@ function myImportXMLFileUsingDefaults(){
 					var crossTextEndIns = myRefTextFrame.parentStory.insertionPoints[currentCitekeyItem.bibParagraphInsertionPoint].paragraphs[0].insertionPoints[-2];
 
 					//create a new cross refrence source
+					//the source is the text that you click in order to get to the destination
 					var myCrossReferenceSource = myDocument.crossReferenceSources.add(crossTextEndIns,crossRefFormat,{
 							name: "ZotRefBacklinkSource_" + currentCitekeyItem.citeKey + "-" + u,
 							label: "zotRefBacklinkSource",
@@ -761,6 +762,7 @@ function createReferenceButton(referenceTextXMLElement, citekeyItem, buttonNumbe
 	
 	//first, create all maskrectangles and collect them in an array
 	var maskRectangles = Array();
+	//if it is a single line
 	if (theReferenceText.lines.length == 1){
 		refPage = referenceTextXMLElement.insertionPoints.firstItem().parentTextFrames[0].parentPage;
 		var ry1 = theReferenceText.insertionPoints.item(0).baseline + maskOffset;
@@ -769,7 +771,9 @@ function createReferenceButton(referenceTextXMLElement, citekeyItem, buttonNumbe
 		var rx2 = theReferenceText.insertionPoints.item(-1).endHorizontalOffset + maskOffset;
 		maskRectangles.push(refPage.rectangles.add({geometricBounds:[ry1,rx1,ry2,rx2], label: "zotRefHoverTrigger",itemLayer: hoverObjectLayer, appliedObjectStyle: hoverTriggerStyle}));
 		stime.addtime("- rects (single line)");
-	} else {
+	}
+	//if the text spans over more than one line
+	else {
 		for(var l = 0; l < theReferenceText.lines.length; l++){
 			var currentLine = theReferenceText.lines.item(l);
 
