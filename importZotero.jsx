@@ -408,7 +408,9 @@ function myImportXMLFileUsingDefaults(){
 			if (myDocument.pages[i].textFrames[j].label == 'references'){
 				myRefTextFrame = myDocument.pages[i].textFrames[j];
 				myRefTextFrame.parentStory.contents = "";
-				addFormattedTextToStory(myRefTextFrame,false,(langBibliographyName == '' ? " " : langBibliographyName),referenceParagraphStyleHead);
+				if (langBibliographyName != '[NONE]'){
+					addFormattedTextToStory(myRefTextFrame,false,(langBibliographyName == '' ? " " : langBibliographyName),referenceParagraphStyleHead);
+				}
 			}
 		}
 	}
@@ -423,7 +425,9 @@ function myImportXMLFileUsingDefaults(){
 		} else {
 			myRefTextFrame.geometricBounds = [newPage.marginPreferences.top,newPage.bounds[1] + newPage.marginPreferences.right,newPage.bounds[2] - newPage.marginPreferences.bottom,newPage.bounds[3] - newPage.marginPreferences.left];
 		}
-		addFormattedTextToStory(myRefTextFrame,false,(langBibliographyName == '' ? " " : langBibliographyName),referenceParagraphStyleHead);
+		if (langBibliographyName != '[NONE]'){
+			addFormattedTextToStory(myRefTextFrame,false,(langBibliographyName == '' ? " " : langBibliographyName),referenceParagraphStyleHead);
+		}
 		notice_general.push("Page " + (newPage.documentOffset+1) + " was created with the textframe for the references. If you want to define your own reference textframe, please create a textframe with the script-label \"references\". This textframe (and the parent story) will be emptied and filled with references.");
 	}
 
@@ -441,7 +445,10 @@ function myImportXMLFileUsingDefaults(){
 		for(var c = 0; c < xc .length(); c++){
 			if (xc[c].citeKey == myCitekeyInfo.citeKeyArray[i].citeKey){
 				myCitekeyInfo.citeKeyArray[i].found = true;
-				addFormattedTextToStory(myRefTextFrame,false, "\r",false);
+				//add a linebreak, if a bibliography title was set, or ignore the first line if none was set
+				if (i != 0 || langBibliographyName != '[NONE]'){
+					addFormattedTextToStory(myRefTextFrame,false, "\r",false);
+				}
 				myCitekeyInfo.citeKeyArray[i].hyperlinkTextDestination = myDocument.hyperlinkTextDestinations.add(myRefTextFrame.parentStory.insertionPoints[-1],{name:"ref-" + xc[c].citeKey, label: 'zotrefLinkDest'}); //create a hyperlink text destination and safe it in the meta data of the citation
 				addFormattedTextToStory(myRefTextFrame,styleAuthor, getAuthorNames(xc[c]),referenceParagraphStyle);
 				addFormattedTextToStory(myRefTextFrame,styleTitle,  getTitle(xc[c]));
@@ -1430,7 +1437,7 @@ function userSettingsDialog(){
 		}
 		with(borderPanels.add()){
 			with(dialogColumns.add()){
-				staticTexts.add({staticLabel:"Title for references page(s):"});
+				staticTexts.add({staticLabel:"Title for references textframe (or [NONE]):"});
 				staticTexts.add({staticLabel:"Connect authors by:"});
 				staticTexts.add({staticLabel:"Identify Editors by:"});
 				staticTexts.add({staticLabel:"Prefix for online date:"});
