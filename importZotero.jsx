@@ -9,7 +9,7 @@ app.scriptPreferences.enableRedraw = true;
 var myDocument, myXML;
 //styles, tags, layer
 var parsedReferenceStyle, parsedReferenceTag, noReferenceStyle;
-var referenceParagraphStyle, referenceParagraphStyleHead;
+var referenceParagraphStyle;
 var styleAuthor, styleYear, styleTitle, styleBacklink;
 var hoverObjectLayer; //the layer for hover objects
 var hoverObjectStyle; //the style for hover objects (the hidden ones)
@@ -41,6 +41,8 @@ var langEditorString = "Edt.";
 var langOnlineAsOfString = "online as of";
 var xmlSettingsTag = 'zoteroImportSettings';
 var neutralCharacterStyleBetweenPageUsages = false;
+var referenceParagraphStyleHead;
+var referenceParagraphStyleHeadString = "Level \\ Level X"; //paragraph style of the page header
 
 //progress bar und timer
 var individualReferenceProgressBarSpace = 50;
@@ -82,7 +84,6 @@ function main(){
 		appliedFont: "Minion Pro",
 		fontStyle: "Regular"
 	});
-	referenceParagraphStyleHead = returnParagraphStyleOrCreatenew("Level 1","Level");
 	referenceHoverParagraphStyle = returnParagraphStyleOrCreatenew("References Hover", "References", {
 		basedOn: referenceParagraphStyle,
 		firstLineIndent: 0,
@@ -1438,12 +1439,14 @@ function userSettingsDialog(){
 		with(borderPanels.add()){
 			with(dialogColumns.add()){
 				staticTexts.add({staticLabel:"Title for references textframe (or [NONE]):"});
+				staticTexts.add({staticLabel:"Title Paragraph Style:"});
 				staticTexts.add({staticLabel:"Connect authors by:"});
 				staticTexts.add({staticLabel:"Identify Editors by:"});
 				staticTexts.add({staticLabel:"Prefix for online date:"});
 			}
 			with(dialogColumns.add()){
 				var langBibliographyNameSetting = textEditboxes.add({editContents: (checkOrWriteSetting("langBibliographyName") ? checkOrWriteSetting("langBibliographyName") : langBibliographyName), minWidth: 180});
+				var dialogPageHeaderParagraphStyle = dropdowns.add(createDialogDropDownParagraphs(referenceParagraphStyleHeadString, "referenceParagraphStyleHeadString"));
 				var langAuthorConnectorSetting = textEditboxes.add({editContents: (checkOrWriteSetting("langAuthorConnector") ? checkOrWriteSetting("langAuthorConnector") : langAuthorConnector), minWidth: 180});
 				var langEditorStringSetting = textEditboxes.add({editContents: (checkOrWriteSetting("langEditorString") ? checkOrWriteSetting("langEditorString") : langEditorString), minWidth: 180});
 				var langOnlineAsOfStringSetting = textEditboxes.add({editContents: (checkOrWriteSetting("langOnlineAsOfString") ? checkOrWriteSetting("langOnlineAsOfString") : langOnlineAsOfString), minWidth: 180});
@@ -1488,6 +1491,11 @@ function userSettingsDialog(){
 		checkOrWriteSetting("backlinksIgnoreRedundantPages",(backlinksIgnoreRedundantPages == true ? "yes" : "no"));
 		backlinksIgnoreOverflowText = backlinksIgnoreOverflowTextSetting.checkedState;
 		checkOrWriteSetting("backlinksIgnoreOverflowText",(backlinksIgnoreOverflowText == true ? "yes" : "no"));
+
+		//styles
+		var myreferenceParagraphStyleHeadString = dialogPageHeaderParagraphStyle.stringList[dialogPageHeaderParagraphStyle.selectedIndex];
+		checkOrWriteSetting ("referenceParagraphStyleHeadString", myreferenceParagraphStyleHeadString);
+		referenceParagraphStyleHead = parseParagraphStyleString(myreferenceParagraphStyleHeadString);
 
 		myDialog.destroy();
 		return true;
@@ -1588,6 +1596,72 @@ function myCreateProgressPanel(myMaximumValue, myProgressBarWidth){
 		myProgressPanel.myText = add('statictext', {x:60, y:0, width:myProgressBarWidth, height:20});
 		myText.text = (redrawMode ? "Starting" : "Started. Please wait (activate redraw to see progress bar).");
 	}
+}
+
+//creates the drop down object with a list of paragraphs styles including paragraph styles in groups for a dialog drop down
+function createDialogDropDownParagraphs(thisParagraphStyleStringVar, thisParagraphStyleString){
+	//if there is a safed value for caption paragraph style and image object style, overwrite default value
+	if (checkOrWriteSetting(thisParagraphStyleString)) {
+		thisParagraphStyleStringVar = checkOrWriteSetting(thisParagraphStyleString);
+	}
+
+	var pSelectedIndex = 0; //paragraph index
+	var pCurrentIndex = -1; //paragraph index
+
+	//prepare array with all styles
+	var thisStyleArray = new Array();
+
+	//parse all non-grouped paragraph styles
+	for (i = 0; i < myDocument.paragraphStyles.count(); i++) {
+		pCurrentIndex++;
+		//compare with default string
+		if (myDocument.paragraphStyles.item(i).name == thisParagraphStyleStringVar) {
+			pSelectedIndex = pCurrentIndex;
+		}
+		thisStyleArray.push(myDocument.paragraphStyles.item(i).name);
+	}
+	//parse all grouped paragraph styles
+	for (i = 0; i < myDocument.paragraphStyleGroups.count(); i++){
+		var currentGroup = myDocument.paragraphStyleGroups[i];
+		for (j = 0; j < currentGroup.paragraphStyles.count(); j++) {
+			pCurrentIndex++;
+			var currentParagraphStyleString = currentGroup.name + " \\ " + currentGroup.paragraphStyles.item(j).name;
+			if (currentParagraphStyleString == thisParagraphStyleStringVar) {
+				pSelectedIndex = pCurrentIndex;
+			}
+			thisStyleArray.push(currentParagraphStyleString);
+		}
+	}
+
+	//return drop down object
+	return {stringList:thisStyleArray, selectedIndex:pSelectedIndex};
+}
+
+//parses a string like "GROUPNAME \ STYLENAME" and returns the style object. Also works if no Groupname (and no division) is given.
+function parseParagraphStyleString(pStyleString){
+	var groupRegex = pStyleString.match(/([^\\]*) \\ ([^\\]*)/);
+	var group;
+	var style;
+	//keine Gruppe erkannt
+	if (groupRegex == null){
+		style = myDocument.paragraphStyles.item(pStyleString);
+		//return FALSE if style is invalid. otherwise return style
+	}
+	//Gruppe erkannt
+	else {
+		group = myDocument.paragraphStyleGroups.item(groupRegex[1]);
+		style = group.paragraphStyles.item(groupRegex[2]);
+		//return FALSE if style is invalid. otherwise return style
+	}
+
+	try{
+		var name = style.name;
+	}
+	catch(e){
+		return false;
+	}
+	return style;
+
 }
 
 function splittime()
