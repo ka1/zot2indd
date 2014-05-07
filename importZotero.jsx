@@ -782,6 +782,8 @@ function createReferenceButton(referenceTextXMLElement, citekeyItem, buttonNumbe
 	}
 	//if the text spans over more than one line
 	else {
+		//prepare array with parameters for rectangles. if refPage.rectangles.add is called in this loop, indesign crashes...
+		var maskRectanglesPreparation = Array();
 		for(var l = 0; l < theReferenceText.lines.length; l++){
 			var currentLine = theReferenceText.lines.item(l);
 
@@ -798,15 +800,21 @@ function createReferenceButton(referenceTextXMLElement, citekeyItem, buttonNumbe
 			var rx1 = currentLine.horizontalOffset - maskOffset;
 			var rx2 = currentLine.endHorizontalOffset + maskOffset;
 			
-			//exception first line:
 			if (l == 0){
+				//exception first line:
 				rx1 = theReferenceText.insertionPoints.item(0).horizontalOffset - maskOffset;
-			}
-			//exception last line
-			else if (l == theReferenceText.lines.length - 1) {
+			} else if (l == theReferenceText.lines.length - 1) {
+				//exception last line
 				rx2 = theReferenceText.insertionPoints.item(-1).endHorizontalOffset + maskOffset;
 			}
-		maskRectangles.push(refPage.rectangles.add({geometricBounds:[ry1,rx1,ry2,rx2], label: "zotRefHoverTrigger",itemLayer: hoverObjectLayer, appliedObjectStyle: hoverTriggerStyle}));
+			
+			//neues array und folgende zeile in eine weitere for schleife setzen!
+			maskRectanglesPreparation.push([ry1,rx1,ry2,rx2]);
+		}
+	
+		//now add the rectangles
+		for(var rec = 0; rec < maskRectanglesPreparation.length; rec++){
+			maskRectangles.push(refPage.rectangles.add({geometricBounds: maskRectanglesPreparation[rec], label: "zotRefHoverTrigger", itemLayer: hoverObjectLayer, appliedObjectStyle: hoverTriggerStyle}));
 		}
 		stime.addtime("- rects (multiple lines)");
 	}
