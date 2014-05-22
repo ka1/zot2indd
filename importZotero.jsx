@@ -375,18 +375,28 @@ function myImportXMLFileUsingDefaults(){
 		}
 	}
 
-	myProgressPanel.myText.text = "Deleting old hyperlinks";
+	myProgressPanel.myText.text = "Preparing deletion of old hyperlinks";
 	myProgressPanel.myProgressBar.value = 7;
+//~ 	$.writeln('hyperlink deletion start');
 
 	//delete all hyperlinks (seems to be unnecessary as hyperlinks (src - dest)) are automatically deleted when the hyperlink source is deleted)
 	//hyperlink destinations need not to be deleted as they are deleted with the emptying of the reference frame
 	if (myDocument.hyperlinks.length > 0){
+		var hyperlinksToBeDeleted = Array();
 		for (var i = myDocument.hyperlinks.length - 1; i >= 0; i--){
 			//$.writeln("checking hyperlink " + i + " (" + myDocument.hyperlinks[i].label + ")");
 			if (myDocument.hyperlinks[i].label == 'zotrefHyperlink'){
-				myDocument.hyperlinks[i].remove();
+				hyperlinksToBeDeleted.push(myDocument.hyperlinks[i]);
+				//myDocument.hyperlinks[i].remove();
+				//$.writeln('marked hyperlink ' + i);
 			}
 		}
+	
+		myProgressPanel.myText.text = "Deleting " + hyperlinksToBeDeleted.length + " old hyperlinks that where in collection";
+		for (var c = hyperlinksToBeDeleted.length - 1; c >= 0; c--){
+			hyperlinksToBeDeleted[c].remove();
+		}
+	
 	}
 
 	myProgressPanel.myText.text = "Deleting old tooltip buttons and trigger buttons";
