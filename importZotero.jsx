@@ -43,6 +43,8 @@ var xmlSettingsTag = 'zoteroImportSettings';
 var neutralCharacterStyleBetweenPageUsages = false;
 var referenceParagraphStyleHead;
 var referenceParagraphStyleHeadString = "Level \\ Level X"; //paragraph style of the page header
+var intextRefCharStart = "[";
+var intextRefCharEnd = "]";
 
 //progress bar und timer
 var individualReferenceProgressBarSpace = 50;
@@ -519,7 +521,7 @@ function myImportXMLFileUsingDefaults(){
 
 		switch(currentCitetype){
 			case 'default':
-				currentRefTagXMLElement.contents = "[" + myCitekeyInfo.getReference(currentKey) + "]";
+				currentRefTagXMLElement.contents = intextRefCharStart + myCitekeyInfo.getReference(currentKey) + intextRefCharEnd;
 				currentRefTagXMLElement.applyCharacterStyle(parsedReferenceStyle);
 				break;
 			case 'noBrackets':
